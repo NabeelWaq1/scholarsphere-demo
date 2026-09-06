@@ -1,0 +1,226 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  name              String
+  email             String    @unique
+  password_hash     String
+  role              String    // "student" | "mentor"
+  avatar_seed       String
+  avatar_url        String?   // Local or hosted realistic photographic headshot
+  headline          String
+  country_of_origin String
+  created_at        DateTime  @default(now())
+
+  student_profile       StudentProfile?
+  mentor_profile        MentorProfile?
+  bookings              Booking[]
+  student_sessions      LiveSession[]      @relation("StudentSessions")
+  mentor_sessions       LiveSession[]      @relation("MentorSessions")
+  student_connections   Connection[]       @relation("StudentConnections")
+  mentor_connections    Connection[]       @relation("MentorConnections")
+  payments              Payment[]
+  saved_scholarships    SavedScholarship[]
+  notifications         Notification[]
+  service_requests      ServiceRequest[]       @relation("StudentRequests")
+  request_applications  RequestApplication[]   @relation("MentorApplications")
+}
+
+model Connection {
+  id           Int       @id @default(autoincrement())
+  student_id   Int
+  student      User      @relation("StudentConnections", fields: [student_id], references: [id], onDelete: Cascade)
+  mentor_id    Int
+  mentor       User      @relation("MentorConnections", fields: [mentor_id], references: [id], onDelete: Cascade)
+  status       String    @default("pending") // "pending" | "accepted" | "declined"
+  message      String?
+  created_at   DateTime  @default(now())
+  responded_at DateTime?
+
+  @@unique([student_id, mentor_id])
+}
+
+model StudentProfile {
+  id                  Int      @id @default(autoincrement())
+  user_id             Int      @unique
+  user                User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  university          String
+  field_of_study      String
+  degree_level        String   // "intermediate" | "undergraduate" | "graduate"
+  gpa                 Float
+  graduation_year     Int
+  budget_range        String   // "Fully funded only" | "$0-5000" | "$5000-15000" | "$15000+"
+  preferred_countries String   // JSON array string
+  bio                 String
+  ielts_toefl_score   String?
+  interests           String   // JSON array string
+}
+
+model MentorProfile {
+  id                         Int             @id @default(autoincrement())
+  user_id                    Int             @unique
+  user                       User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  current_university         String
+  field_of_study             String
+  degree_level               String
+  country                    String
+  scholarship_they_hold      String
+  years_experience_mentoring Int
+  bio                        String
+  rating                     Float           @default(5.0)
+  total_reviews              Int             @default(0)
+  response_time_hours        Int             @default(24)
+  services                   MentorService[]
+  reviews                    Review[]
+}
+
+model Scholarship {
+  id                 Int                @id @default(autoincrement())
+  title              String
+  provider           String
+  country            String
+  field_of_study     String             // Field name or "Any"
+  degree_level       String             // "undergraduate" | "graduate" | "Any"
+  min_gpa_required   Float
+  funding_type       String             // "full" | "partial"
+  amount_description String
+  deadline           DateTime
+  description        String
+  image_url          String?            // Representative high quality campus photo
+  tags               String             // JSON array string
+  required_documents String             // JSON array string
+  created_at         DateTime           @default(now())
+  saved_by           SavedScholarship[]
+}
+
+model MentorService {
+  id                 Int           @id @default(autoincrement())
+  mentor_id          Int
+  mentor             MentorProfile @relation(fields: [mentor_id], references: [id], onDelete: Cascade)
+  title              String
+  category           String        // "SOP review" | "Visa guidance" | "Interview prep" | "Recommendation letter help" | "University shortlisting" | "Scholarship application review"
+  price              Float
+  delivery_time_days Int
+  description        String
+  created_at         DateTime      @default(now())
+  bookings           Booking[]
+}
+
+model Booking {
+  id             Int           @id @default(autoincrement())
+  student_id     Int
+  student        User          @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  service_id     Int
+  service        MentorService @relation(fields: [service_id], references: [id], onDelete: Cascade)
+  status         String        @default("pending") // "pending" | "confirmed" | "completed"
+  payment_status String        @default("free")    // "paid" | "free"
+  amount_paid    Float         @default(0)
+  notes          String?
+  created_at     DateTime      @default(now())
+}
+
+model LiveSession {
+  id                    Int               @id @default(autoincrement())
+  mentor_id             Int
+  mentor                User              @relation("MentorSessions", fields: [mentor_id], references: [id], onDelete: Cascade)
+  student_id            Int
+  student               User              @relation("StudentSessions", fields: [student_id], references: [id], onDelete: Cascade)
+  title                 String
+  scheduled_datetime    DateTime
+  duration_minutes      Int               // 30 or 60
+  status                String            @default("requested") // "requested" | "confirmed" | "completed" | "declined" | "cancelled"
+  is_free_first_session Boolean           @default(false)
+  price                 Float             @default(0)
+  payment_status        String            @default("not_required") // "not_required" | "paid"
+  meeting_note          String?
+  created_at            DateTime          @default(now())
+  recording             SessionRecording?
+}
+
+model SessionRecording {
+  id               Int         @id @default(autoincrement())
+  live_session_id  Int         @unique
+  live_session     LiveSession @relation(fields: [live_session_id], references: [id], onDelete: Cascade)
+  video_url        String
+  duration_minutes Int
+  thumbnail_url    String
+  created_at       DateTime    @default(now())
+}
+
+model Payment {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  related_type String   // "service_booking" | "live_session"
+  related_id   Int
+  amount       Float
+  card_last4   String
+  status       String   @default("success")
+  created_at   DateTime @default(now())
+}
+
+model SavedScholarship {
+  id             Int         @id @default(autoincrement())
+  student_id     Int
+  student        User        @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  scholarship_id Int
+  scholarship    Scholarship @relation(fields: [scholarship_id], references: [id], onDelete: Cascade)
+  created_at     DateTime    @default(now())
+
+  @@unique([student_id, scholarship_id])
+}
+
+model Review {
+  id           Int           @id @default(autoincrement())
+  mentor_id    Int
+  mentor       MentorProfile @relation(fields: [mentor_id], references: [id], onDelete: Cascade)
+  student_name String
+  rating       Int
+  comment      String
+  likes_count  Int           @default(0)
+  created_at   DateTime      @default(now())
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  type       String   // "booking_confirmed" | "session_confirmed" | "session_requested" | "session_reminder" | "new_review" | "connection_requested" | "connection_accepted"
+  message    String
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now())
+}
+
+model ServiceRequest {
+  id            Int                  @id @default(autoincrement())
+  student_id    Int
+  student       User                 @relation("StudentRequests", fields: [student_id], references: [id], onDelete: Cascade)
+  title         String
+  category      String               // same categories as MentorService
+  description   String
+  budget_min    Float
+  budget_max    Float
+  deadline      DateTime
+  status        String               @default("open") // open | in_progress | completed | closed
+  created_at    DateTime             @default(now())
+  applications  RequestApplication[]
+}
+
+model RequestApplication {
+  id              Int            @id @default(autoincrement())
+  request_id      Int
+  request         ServiceRequest @relation(fields: [request_id], references: [id], onDelete: Cascade)
+  mentor_id       Int
+  mentor          User           @relation("MentorApplications", fields: [mentor_id], references: [id], onDelete: Cascade)
+  proposed_price  Float
+  message         String
+  status          String         @default("pending") // pending | accepted | rejected
+  created_at      DateTime       @default(now())
+}

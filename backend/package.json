@@ -1,0 +1,26 @@
+{
+  "name": "scholarsphere-backend",
+  "version": "1.0.0",
+  "description": "ScholarSphere - AI-Powered Scholarship & Mentorship Marketplace Backend",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "build": "node scripts/sync-db-provider.js && prisma generate",
+    "prisma:generate": "node scripts/sync-db-provider.js && prisma generate",
+    "prisma:push": "node scripts/sync-db-provider.js && prisma db push",
+    "seed": "node scripts/sync-db-provider.js && node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "prisma": "^5.22.0"
+  }
+}

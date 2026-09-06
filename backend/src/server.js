@@ -14,11 +14,6 @@ const statsRoutes = require('./routes/stats');
 const connectionsRoutes = require('./routes/connections');
 const serviceRequestsRoutes = require('./routes/serviceRequests');
 
-// Automatically sync Prisma provider to postgresql or sqlite based on DATABASE_URL
-try {
-  require('../scripts/sync-db-provider');
-} catch (e) {}
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 

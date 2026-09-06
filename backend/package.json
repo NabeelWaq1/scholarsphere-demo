@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "build": "node scripts/sync-db-provider.js && prisma generate",
-    "prisma:generate": "node scripts/sync-db-provider.js && prisma generate",
-    "prisma:push": "node scripts/sync-db-provider.js && prisma db push",
-    "seed": "node scripts/sync-db-provider.js && node prisma/seed.js"
+    "build": "prisma generate",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

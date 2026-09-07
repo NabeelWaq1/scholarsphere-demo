@@ -22,6 +22,8 @@ backend/prisma/*.db
 dist/
 **/dist/
 build/
+.vercel/
+
 
 # Logs
 logs/

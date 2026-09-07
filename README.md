@@ -63,6 +63,21 @@ npm run dev
 
 ---
 
+## ⚡ Vercel Deployment
+
+ScholarSphere is pre-configured for seamless 1-click deployment on **Vercel** as a fullstack application (Express Serverless API + React Vite SPA).
+
+### Quick Deployment Steps:
+1. Import this repository into **[Vercel](https://vercel.com/new)**.
+2. Vercel automatically detects the root configuration (`vercel.json` and `api/index.js`).
+3. Set the following **Environment Variables** in Vercel Project Settings:
+   - `DATABASE_URL`: Connection string for PostgreSQL database (e.g. Supabase, Neon, Railway, or Render Postgres).
+   - `JWT_SECRET`: Secret string for signing auth tokens (e.g., `your_secure_jwt_secret`).
+   - `FRONTEND_URL` (optional): Allowed CORS origin URL.
+4. Click **Deploy**. Vercel will build both the frontend assets and backend serverless endpoints automatically!
+
+---
+
 ## 🔑 Demo Login Credentials
 
 On the **Sign In page (`/login`)**, click on the **"Try Demo Accounts"** helper box to log in with 1 click without typing.

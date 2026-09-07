@@ -66,6 +66,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error', details: err.message });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 ScholarSphere backend server running on http://localhost:${PORT}`);
-});
+if (process.env.VERCEL !== '1' && require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 ScholarSphere backend server running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
